@@ -459,11 +459,13 @@ class Board:
         return move in self.legal_moves
 
     def parse_uci(self, uci):
-        move = checkers.Move.from_uci(uci)
+        try:
+            move = checkers.Move.from_uci(uci)
+        except ValueError:
+            raise checkers.InvalidMoveError("Syntax error.")
 
         if self.squares[move.from_square[0]][move.from_square[1]].piece == None:
-            raise checkers.InvalidMoveError(
-                "There is no piece on this square.")
+            raise checkers.InvalidMoveError("There is no piece on this square.")
 
         promoterank = 7 if self.squares[move.from_square[0]][move.from_square[1]].piece.color == checkers.RED else 0
 
@@ -472,8 +474,7 @@ class Board:
 
         if type(move) == MultiJump:
             for m in move.moves:
-                tile = Tile.jumped(
-                    self.squares[m.from_square[0]][m.from_square[1]], self.squares[m.to_square[0]][m.to_square[1]])
+                tile = Tile.jumped(self.squares[m.from_square[0]][m.from_square[1]], self.squares[m.to_square[0]][m.to_square[1]])
 
                 if self.squares[tile[0]][tile[1]].piece:
                     m.drops.append(tile)
@@ -527,8 +528,7 @@ class Board:
 
             for tile in pieces:
                 if len(tile.get_all_multijumps()) > 0:
-                    raise checkers.IllegalMoveError(
-                        f"Illegal move. A jump is available and must be taken.\nFirst legal move: \"{next(iter(self.legal_moves)).uci()}\"")
+                    raise checkers.IllegalMoveError(f"Illegal move. A jump is available and must be taken.\nFirst legal move: \"{next(iter(self.legal_moves)).uci()}\"")
 
             raise checkers.IllegalMoveError("Illegal move.")
 
